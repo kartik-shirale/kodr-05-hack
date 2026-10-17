@@ -41,6 +41,7 @@ export interface SessionEventItem {
   warningNumber?: number;
   review: "VALID" | "FALSE_ALARM" | "PENDING";
   hasSnapshot: boolean;
+  snapshotDataUrl?: string;
   meta?: Record<string, unknown>;
 }
 

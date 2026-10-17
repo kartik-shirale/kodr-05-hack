@@ -287,7 +287,7 @@ function SessionReviewContent({
                 const occurredTime = event.occurredAt
                   ? format(new Date(event.occurredAt), "h:mm:ss a")
                   : "-";
-                const snapshotUrl = getEventSnapshotUrl(event.id);
+                const snapshotUrl = event.snapshotDataUrl || getEventSnapshotUrl(event.id);
 
                 return (
                   <Card
@@ -494,7 +494,7 @@ function SessionReviewContent({
             <div className="space-y-4">
               <div className="rounded-lg overflow-hidden border border-border/80 bg-black max-h-[60vh] flex items-center justify-center">
                 <img
-                  src={getEventSnapshotUrl(activeSnapshot.id)}
+                  src={activeSnapshot.snapshotDataUrl || getEventSnapshotUrl(activeSnapshot.id)}
                   alt="Snapshot evidence"
                   className="max-h-[60vh] w-auto object-contain"
                 />

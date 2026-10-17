@@ -89,15 +89,17 @@ export async function cleanupSnapshots(retentionDays = 30) {
 
     for (const event of oldEventsWithSnapshots) {
       if (event.snapshotPath) {
-        const resolvedPath = path.isAbsolute(event.snapshotPath)
-          ? event.snapshotPath
-          : path.join(process.cwd(), event.snapshotPath);
+        if (!event.snapshotPath.startsWith('data:')) {
+          const resolvedPath = path.isAbsolute(event.snapshotPath)
+            ? event.snapshotPath
+            : path.join(process.cwd(), event.snapshotPath);
 
-        if (fs.existsSync(resolvedPath)) {
-          try {
-            fs.unlinkSync(resolvedPath);
-          } catch (_e) {
-            // Ignore file unlink error
+          if (fs.existsSync(resolvedPath)) {
+            try {
+              fs.unlinkSync(resolvedPath);
+            } catch (_e) {
+              // Ignore file unlink error
+            }
           }
         }
 

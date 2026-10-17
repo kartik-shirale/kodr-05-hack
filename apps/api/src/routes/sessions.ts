@@ -30,6 +30,8 @@ function iso(value: unknown): string | null {
 }
 
 function toEventItem(event: EventRow) {
+  const isDataUrl =
+    typeof event.snapshotPath === 'string' && event.snapshotPath.startsWith('data:image/');
   return {
     id: event.id,
     type: event.type,
@@ -40,6 +42,7 @@ function toEventItem(event: EventRow) {
     warningNumber: event.warningNumber ?? undefined,
     review: event.review,
     hasSnapshot: Boolean(event.snapshotPath),
+    snapshotDataUrl: isDataUrl ? event.snapshotPath : undefined,
     meta: (event.meta ?? undefined) as Record<string, unknown> | undefined,
   };
 }
@@ -332,6 +335,17 @@ sessionReviewRouter.get(
 
       if (!event.snapshotPath) {
         throw new AppError(404, 'NOT_FOUND', 'No snapshot for this event');
+      }
+
+      if (event.snapshotPath.startsWith('data:image/')) {
+        const matches = event.snapshotPath.match(/^data:(image\/[a-zA-Z0-9+.-]+);base64,(.+)$/);
+        const mimeType = matches ? matches[1] : 'image/jpeg';
+        const base64Data = matches ? matches[2] : event.snapshotPath.replace(/^data:image\/\w+;base64,/, '');
+        const buffer = Buffer.from(base64Data, 'base64');
+        res.setHeader('Content-Type', mimeType);
+        res.setHeader('Content-Length', buffer.length);
+        res.setHeader('Cache-Control', 'private, max-age=86400');
+        return res.end(buffer);
       }
 
       const absolute = path.resolve(process.cwd(), event.snapshotPath);

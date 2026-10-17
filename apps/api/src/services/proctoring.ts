@@ -515,17 +515,27 @@ export function parseClientEventDrafts(
 }
 
 export async function saveSnapshot(examSessionId: string, image: Buffer): Promise<string> {
-  const directory = path.resolve(
-    process.cwd(),
-    config.proctor.uploadDir,
-    'snapshots',
-    examSessionId
-  );
-  await mkdir(directory, { recursive: true });
-  const filename = `${randomUUID()}.jpg`;
-  const absolute = path.join(directory, filename);
-  await writeFile(absolute, image);
-  return path.relative(process.cwd(), absolute);
+  const dataUrl = `data:image/jpeg;base64,${image.toString('base64')}`;
+
+  // Best-effort local file write for local development inspection.
+  // In serverless environments (e.g. Vercel), disk writes may fail due to read-only or ephemeral filesystems.
+  // Storing the base64 data URL directly in the database guarantees persistence everywhere.
+  try {
+    const directory = path.resolve(
+      process.cwd(),
+      config.proctor.uploadDir,
+      'snapshots',
+      examSessionId
+    );
+    await mkdir(directory, { recursive: true });
+    const filename = `${randomUUID()}.jpg`;
+    const absolute = path.join(directory, filename);
+    await writeFile(absolute, image);
+  } catch (err) {
+    console.warn('Failed to save snapshot to disk (expected on read-only serverless lambdas):', err);
+  }
+
+  return dataUrl;
 }
 
 async function persistEvents(options: {
