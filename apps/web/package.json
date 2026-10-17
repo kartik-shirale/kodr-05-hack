@@ -6,12 +6,10 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint",
-    "contract:emit": "prisma contract emit"
+    "lint": "eslint"
   },
   "dependencies": {
     "@base-ui/react": "^1.9.0",
-    "@prisma/orm-postgres": "^8.0.0-rc.18",
     "class-variance-authority": "^0.7.1",
     "cn": "^0.5.0",
     "dotenv": "^17.4.2",
@@ -30,7 +28,6 @@
     "babel-plugin-react-compiler": "1.0.0",
     "eslint": "^9",
     "eslint-config-next": "16.4.2",
-    "prisma": "^8.0.0-rc.23",
     "tailwindcss": "^4",
     "typescript": "^5"
   }

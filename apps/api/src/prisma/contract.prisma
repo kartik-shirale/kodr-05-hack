@@ -1,5 +1,14 @@
 // use prisma-8
 
+// Prisma 8 contract (was schema.prisma in Prisma 7).
+// The generator and datasource blocks are gone: the DB URL and output paths
+// live in prisma.config.ts.
+
+// ═════════════════════════ ENUMS ═════════════════════════
+// Plain enums are stored as text columns (with a check constraint), not as
+// PostgreSQL enum types. See the note in the reply if you already have a
+// Prisma 7 database with native enum types.
+
 enum UserRole {
   TEACHER
   STUDENT
@@ -56,7 +65,7 @@ model Teacher {
   lockedUntil  DateTime? // temporary lock after too many failed logins
   lastLoginAt  DateTime?
   createdAt    DateTime  @default(now())
-  updatedAt    DateTime  @updatedAt
+  updatedAt    temporal.updatedAt()
 
   tests               Test[]
   refreshTokens       RefreshToken[]
@@ -125,10 +134,10 @@ model Test {
 
   // Per-rule thresholds, weights, enabled and "warn" flags, plus warningCooldownSec
   // and risk level cut-offs. Set by the service on create; edited in the Tuning screen.
-  rulesConfig Json
+  rulesConfig Jsonb
 
   createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  updatedAt temporal.updatedAt()
 
   teacher      Teacher       @relation(fields: [teacherId], references: [id], onDelete: Cascade)
   sets         QuestionSet[]
@@ -223,7 +232,7 @@ model Answer {
   examSessionId String
   questionId    String
   selectedIndex Int
-  updatedAt     DateTime @updatedAt
+  updatedAt     temporal.updatedAt()
 
   examSession ExamSession @relation(fields: [examSessionId], references: [id], onDelete: Cascade)
   question    Question    @relation(fields: [questionId], references: [id], onDelete: Cascade)
@@ -241,7 +250,7 @@ model Event {
   occurredAt       DateTime
   durationMs       Int?
   snapshotPath     String? // small JPEG in storage, never video
-  meta             Json? // e.g. { yaw: 41, confidence: 0.83 }
+  meta             Jsonb? // e.g. { yaw: 41, confidence: 0.83 }
   weight           Int // copied from rulesConfig at ingest time
   countedAsWarning Boolean      @default(false) // this event used up a warning
   warningNumber    Int? // 1, 2, ... which warning it was
