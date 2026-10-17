@@ -5,9 +5,11 @@ import { config } from './config/env.js';
 import { errorHandler } from './middleware/error-handler.js';
 import { authRouter } from './routes/auth.js';
 import { eventsRouter } from './routes/events.js';
+import { examRouter } from './routes/exam.js';
 import { healthRouter } from './routes/health.js';
 import { sessionsRouter } from './routes/sessions.js';
 import { testsRouter } from './routes/tests.js';
+import { startBackgroundJobs } from './jobs/index.js';
 
 const app = express();
 const port = config.port;
@@ -54,9 +56,15 @@ app.use('/sessions', sessionsRouter);
 app.use('/api/v1/events', eventsRouter);
 app.use('/events', eventsRouter);
 
+// 6. Student: Exam routes
+// Specs: Base path /api/v1, Exam routes mounted at /api/v1/exam and aliased to /exam
+app.use('/api/v1/exam', examRouter);
+app.use('/exam', examRouter);
+
 // Centralized error handling
 app.use(errorHandler);
 
 app.listen(port, () => {
   console.log(`API server listening on http://localhost:${port}`);
+  startBackgroundJobs();
 });
