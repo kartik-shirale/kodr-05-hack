@@ -6,7 +6,7 @@ export const config = {
   jwtAccessSecret: process.env.JWT_ACCESS_SECRET ?? 'dev_jwt_access_secret_key_change_in_production_32char',
   accessTokenTtlMs: 15 * 60 * 1000, // 15 minutes
   refreshTokenTtlMs: 7 * 24 * 60 * 60 * 1000, // 7 days
-  frontendUrl: process.env.FRONTEND_URL ?? 'http://localhost:3000',
+  frontendUrl: (process.env.FRONTEND_URL ?? 'https://kodr-05-hack-bgdi.vercel.app').replace(/\/+$/, ''),
   isProd: process.env.NODE_ENV === 'production',
   proctor: {
     // Which vision backend to use: 'auto' picks OpenRouter whenever an
