@@ -1,5 +1,6 @@
 import axios, { AxiosError, AxiosInstance, AxiosRequestConfig, AxiosResponse, InternalAxiosRequestConfig } from "axios";
 import type { ApiError, ApiResponse, PaginationMeta } from "@/types/api";
+import { getQueryClient } from "./query-client";
 
 export const API_ORIGIN = process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000";
 const API_BASE_URL = API_ORIGIN + "/api/v1";
@@ -124,6 +125,37 @@ function handleAuthRedirect() {
   }
 }
 
+let isLoggingOut = false;
+
+export async function performLogoutAndRedirect() {
+  if (typeof window === "undefined") return;
+  if (isLoggingOut) return;
+  isLoggingOut = true;
+
+  try {
+    // Clear cookies on backend
+    await axios.post(
+      `${API_BASE_URL}/auth/logout`,
+      {},
+      { withCredentials: true, timeout: 5000 }
+    );
+  } catch {
+    // Ignore any logout failures
+  }
+
+  try {
+    getQueryClient().clear();
+  } catch {
+    // Ignore
+  }
+
+  handleAuthRedirect();
+
+  setTimeout(() => {
+    isLoggingOut = false;
+  }, 2000);
+}
+
 export const apiClient: AxiosInstance = axios.create({
   baseURL: API_BASE_URL,
   withCredentials: true,
@@ -147,6 +179,29 @@ apiClient.interceptors.response.use(
 
     // Never retry on /auth/* routes to avoid infinite refresh loops
     const isAuthRoute = originalRequest?.url?.includes("/auth/");
+
+    // 1. Handle 403 Forbidden: log out the user on the frontend
+    if (error.response?.status === 403 && !isAuthRoute) {
+      const responseData = error.response?.data as
+        | { error?: { code?: string; message?: string; details?: unknown } }
+        | undefined;
+      const code = responseData?.error?.code;
+
+      // Do not log out for legitimate exam lobby pre-start conditions where 403 communicates state
+      const isExamLobbyCondition =
+        code === "TEST_NOT_STARTED" ||
+        code === "CONSENT_REQUIRED" ||
+        code === "TEST_ENDED" ||
+        code === "TEST_NOT_PUBLISHED";
+
+      if (!isExamLobbyCondition) {
+        performLogoutAndRedirect();
+        const normalized = normalizeError(error);
+        return Promise.reject(new NormalizedApiError(normalized));
+      }
+    }
+
+    // 2. Handle 401 Unauthorized with token refresh rotation
     if (error.response?.status === 401 && !isAuthRoute && originalRequest && !originalRequest._retry) {
       if (isRefreshing) {
         return new Promise((resolve, reject) => {
@@ -174,7 +229,7 @@ apiClient.interceptors.response.use(
       } catch (refreshError) {
         const normalized = normalizeError(refreshError);
         processQueue(normalized);
-        handleAuthRedirect();
+        performLogoutAndRedirect();
         return Promise.reject(new NormalizedApiError(normalized));
       } finally {
         isRefreshing = false;
