@@ -1,0 +1,257 @@
+// use prisma-8
+
+enum UserRole {
+  TEACHER
+  STUDENT
+}
+
+enum TestStatus {
+  DRAFT
+  PUBLISHED
+}
+
+enum ExamSessionStatus {
+  IN_PROGRESS
+  SUBMITTED
+  AUTO_SUBMITTED
+}
+
+enum EndReason {
+  SUBMITTED_BY_STUDENT
+  TIME_UP
+  WARNING_LIMIT
+}
+
+enum RiskLevel {
+  LOW
+  MEDIUM
+  HIGH
+}
+
+enum EventType {
+  NO_FACE
+  MULTIPLE_FACES
+  LOOKING_AWAY
+  PHONE_DETECTED
+  TAB_SWITCH
+}
+
+enum ReviewStatus {
+  PENDING
+  VALID
+  FALSE_ALARM
+}
+
+// ═════════════════════════ AUTH ═════════════════════════
+// Teachers register themselves. Students (Participants) are created by a
+// teacher and receive a generated password by email.
+// Login = short-lived JWT access cookie + rotating refresh token (stored hashed).
+
+model Teacher {
+  id           String    @id @default(uuid())
+  name         String
+  email        String    @unique
+  passwordHash String
+  failedLogins Int       @default(0)
+  lockedUntil  DateTime? // temporary lock after too many failed logins
+  lastLoginAt  DateTime?
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+
+  tests               Test[]
+  refreshTokens       RefreshToken[]
+  passwordResetTokens PasswordResetToken[]
+
+  @@map("teachers")
+}
+
+// One row per active login (per device). Store only the SHA-256 hash of the token.
+// Rotation: on refresh, revoke the old row and set replacedById to the new one.
+// If a revoked token is reused, revoke the whole family (theft detection).
+model RefreshToken {
+  id            String    @id @default(uuid())
+  tokenHash     String    @unique
+  familyId      String // groups tokens created by rotation from one login
+  role          UserRole
+  teacherId     String?
+  participantId String?
+  expiresAt     DateTime
+  revokedAt     DateTime?
+  replacedById  String?
+  userAgent     String?
+  ip            String?
+  createdAt     DateTime  @default(now())
+
+  teacher     Teacher?     @relation(fields: [teacherId], references: [id], onDelete: Cascade)
+  participant Participant? @relation(fields: [participantId], references: [id], onDelete: Cascade)
+
+  @@index([familyId])
+  @@index([teacherId])
+  @@index([participantId])
+  @@index([expiresAt])
+  @@map("refresh_tokens")
+}
+
+// Teacher password reset only. Students get a new password via "resend credentials".
+model PasswordResetToken {
+  id        String    @id @default(uuid())
+  teacherId String
+  tokenHash String    @unique
+  expiresAt DateTime
+  usedAt    DateTime?
+  createdAt DateTime  @default(now())
+
+  teacher Teacher @relation(fields: [teacherId], references: [id], onDelete: Cascade)
+
+  @@index([teacherId])
+  @@map("password_reset_tokens")
+}
+
+// ═════════════════════════ TEST ═════════════════════════
+
+model Test {
+  id              String     @id @default(uuid())
+  teacherId       String
+  title           String
+  description     String?
+  startsAt        DateTime
+  durationMinutes Int
+  status          TestStatus @default(DRAFT)
+
+  // Warning policy, set by the teacher. Locked once the test starts.
+  warningsEnabled   Boolean @default(true)  // false = record silently, never warn
+  maxWarnings       Int     @default(2)     // warnings the student gets (1-5)
+  autoSubmitOnLimit Boolean @default(false) // end exam when a violation happens after the last warning
+
+  // Per-rule thresholds, weights, enabled and "warn" flags, plus warningCooldownSec
+  // and risk level cut-offs. Set by the service on create; edited in the Tuning screen.
+  rulesConfig Json
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  teacher      Teacher       @relation(fields: [teacherId], references: [id], onDelete: Cascade)
+  sets         QuestionSet[]
+  participants Participant[]
+
+  @@index([teacherId, startsAt])
+  @@map("tests")
+}
+
+model QuestionSet {
+  id     String @id @default(uuid())
+  testId String
+  name   String // "Set A", "Set B"
+
+  test         Test          @relation(fields: [testId], references: [id], onDelete: Cascade)
+  questions    Question[]
+  participants Participant[]
+
+  @@unique([testId, name])
+  @@map("question_sets")
+}
+
+model Question {
+  id           String   @id @default(uuid())
+  setId        String
+  text         String
+  options      String[]
+  correctIndex Int
+  marks        Int      @default(1)
+  order        Int
+
+  set     QuestionSet @relation(fields: [setId], references: [id], onDelete: Cascade)
+  answers Answer[]
+
+  @@unique([setId, order])
+  @@map("questions")
+}
+
+// ═════════════════════ PARTICIPANT (student for one test) ═════════════════════
+
+model Participant {
+  id                String    @id @default(uuid())
+  testId            String
+  setId             String? // assigned when the student is added
+  name              String
+  email             String
+  passwordHash      String // generated password, emailed once, stored hashed
+  failedLogins      Int       @default(0)
+  lockedUntil       DateTime?
+  lastLoginAt       DateTime?
+  credentialsSentAt DateTime?
+  emailError        String?
+  createdAt         DateTime  @default(now())
+
+  test          Test           @relation(fields: [testId], references: [id], onDelete: Cascade)
+  set           QuestionSet?   @relation(fields: [setId], references: [id], onDelete: SetNull)
+  examSession   ExamSession?
+  refreshTokens RefreshToken[]
+
+  @@unique([testId, email])
+  @@index([testId])
+  @@map("participants")
+}
+
+// ═════════════════════ EXAM SESSION (one attempt) ═════════════════════
+
+model ExamSession {
+  id            String            @id @default(uuid())
+  participantId String            @unique
+  consentAt     DateTime
+  startedAt     DateTime
+  endsAt        DateTime // min(startedAt + duration, test end)
+  submittedAt   DateTime?
+  status        ExamSessionStatus @default(IN_PROGRESS)
+  endReason     EndReason?
+  warningCount  Int               @default(0) // counted on the server only
+  score         Int?
+  riskScore     Int               @default(0)
+  riskLevel     RiskLevel         @default(LOW)
+
+  participant Participant @relation(fields: [participantId], references: [id], onDelete: Cascade)
+  answers     Answer[]
+  events      Event[]
+
+  // used by the "auto-submit expired sessions" job
+  @@index([status, endsAt])
+  @@map("exam_sessions")
+}
+
+model Answer {
+  id            String   @id @default(uuid())
+  examSessionId String
+  questionId    String
+  selectedIndex Int
+  updatedAt     DateTime @updatedAt
+
+  examSession ExamSession @relation(fields: [examSessionId], references: [id], onDelete: Cascade)
+  question    Question    @relation(fields: [questionId], references: [id], onDelete: Cascade)
+
+  @@unique([examSessionId, questionId])
+  @@map("answers")
+}
+
+// ═════════════════════ PROCTORING EVENTS ═════════════════════
+
+model Event {
+  id               String       @id @default(uuid())
+  examSessionId    String
+  type             EventType
+  occurredAt       DateTime
+  durationMs       Int?
+  snapshotPath     String? // small JPEG in storage, never video
+  meta             Json? // e.g. { yaw: 41, confidence: 0.83 }
+  weight           Int // copied from rulesConfig at ingest time
+  countedAsWarning Boolean      @default(false) // this event used up a warning
+  warningNumber    Int? // 1, 2, ... which warning it was
+  review           ReviewStatus @default(PENDING)
+  reviewedAt       DateTime?
+  createdAt        DateTime     @default(now())
+
+  examSession ExamSession @relation(fields: [examSessionId], references: [id], onDelete: Cascade)
+
+  @@index([examSessionId, occurredAt])
+  @@index([examSessionId, type])
+  @@map("events")
+}
