@@ -5,11 +5,15 @@ import { authenticate, requireRole } from '../middleware/authenticate.js';
 import { validate } from '../middleware/validate.js';
 import { db, epochMsFromInstant, instantFromDate } from '../prisma/db.js';
 import { AppError, formatSuccessResponse } from '../utils/errors.js';
+import { participantsRouter } from './participants.js';
 
 export const testsRouter = Router();
 
 // Teacher only for all test routes
 testsRouter.use(authenticate, requireRole('TEACHER'));
+
+// Mount participant routes: /tests/:testId/participants...
+testsRouter.use('/:testId/participants', participantsRouter);
 
 // ─── Validation Schemas ──────────────────────────────────────────────
 const questionSchema = z
