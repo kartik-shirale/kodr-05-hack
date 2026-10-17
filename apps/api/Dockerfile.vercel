@@ -1,0 +1,41 @@
+# Container image for the Express + TypeScript API (Vercel "api" service).
+#
+# The build context is this directory (apps/api), so this Dockerfile is fully
+# self-contained: it installs only the API's own dependencies from
+# apps/api/package.json. On Vercel, set the service `root` to `apps/api` and
+# `runtime` to `container` (see the root vercel.json).
+#
+# Vercel Functions default to port 80 for container images; PORT can be
+# overridden per-project. Locally (docker compose) override PORT to 4000.
+
+FROM node:24-bookworm-slim AS build
+WORKDIR /app
+
+# Install build dependencies (tsc lives in devDependencies).
+COPY package.json ./
+RUN npm install --no-audit --no-fund
+
+COPY tsconfig.json ./
+COPY src ./src
+RUN npm run build
+
+# ---- runtime ----
+FROM node:24-bookworm-slim AS runtime
+WORKDIR /app
+
+ENV NODE_ENV=production
+ENV PORT=80
+
+# Production dependencies only.
+COPY package.json ./
+RUN npm install --omit=dev --no-audit --no-fund && npm cache clean --force
+
+# Compiled output (includes the generated Prisma contract.json).
+COPY --from=build /app/dist ./dist
+
+# Evidence snapshots are written here at runtime; mount a volume to persist.
+RUN mkdir -p uploads
+
+EXPOSE 80
+
+CMD ["node", "dist/index.js"]

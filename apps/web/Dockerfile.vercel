@@ -1,0 +1,42 @@
+# Container image for the Next.js frontend (Vercel "web" service).
+#
+# The build context is this directory (apps/web), so this Dockerfile is fully
+# self-contained. It builds Next.js in `output: "standalone"` mode and ships
+# only the traced server + static assets. On Vercel, set the service `root` to
+# `apps/web` and `runtime` to `container` (see the root vercel.json).
+#
+# NEXT_PUBLIC_API_URL is baked into the browser bundle at build time. Leave it
+# empty when the API is served from the same origin (Vercel services + rewrite);
+# set it (e.g. http://localhost:4000) for local docker compose.
+
+FROM node:24-bookworm-slim AS build
+WORKDIR /app
+
+ENV NEXT_TELEMETRY_DISABLED=1
+
+COPY package.json ./
+RUN npm install --no-audit --no-fund
+
+COPY . .
+
+ARG NEXT_PUBLIC_API_URL=""
+ENV NEXT_PUBLIC_API_URL=${NEXT_PUBLIC_API_URL}
+
+RUN npm run build
+
+# ---- runtime ----
+FROM node:24-bookworm-slim AS runtime
+WORKDIR /app
+
+ENV NODE_ENV=production
+ENV NEXT_TELEMETRY_DISABLED=1
+ENV PORT=80
+ENV HOSTNAME=0.0.0.0
+
+COPY --from=build /app/.next/standalone ./
+COPY --from=build /app/.next/static ./.next/static
+COPY --from=build /app/public ./public
+
+EXPOSE 80
+
+CMD ["node", "server.js"]

@@ -1,7 +1,7 @@
 import axios, { AxiosError, AxiosInstance, AxiosRequestConfig, AxiosResponse, InternalAxiosRequestConfig } from "axios";
 import type { ApiError, ApiResponse, PaginationMeta } from "@/types/api";
 
-export const API_ORIGIN = process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000";
+export const API_ORIGIN = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:4000";
 const API_BASE_URL = API_ORIGIN + "/api/v1";
 
 export class NormalizedApiError extends Error implements ApiError {

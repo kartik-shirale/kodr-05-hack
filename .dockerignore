@@ -1,0 +1,21 @@
+**/node_modules
+**/.next
+**/dist
+**/.turbo
+**/.git
+**/.env
+**/.env.*
+!**/.env.example
+
+# python
+**/.venv
+**/__pycache__
+**/*.py[cod]
+
+# local artifacts
+apps/api/uploads
+apps/api/storage
+**/*.tsbuildinfo
+**/npm-debug.log*
+docs
+README.md
