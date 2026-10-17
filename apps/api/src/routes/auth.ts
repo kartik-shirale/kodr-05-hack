@@ -6,6 +6,7 @@ import { authenticate } from '../middleware/authenticate.js';
 import { authLimiter } from '../middleware/rate-limit.js';
 import { validate } from '../middleware/validate.js';
 import { db, epochMsFromInstant, instantFromMs, nowInstant } from '../prisma/db.js';
+import { sendPasswordResetEmail } from '../services/email.js';
 import { AppError, formatSuccessResponse } from '../utils/errors.js';
 import { comparePassword, hashPassword } from '../utils/password.js';
 import {
@@ -436,7 +437,11 @@ authRouter.post(
         });
 
         const resetUrl = `${config.frontendUrl}/reset-password?token=${rawToken}`;
-        console.log(`[PASSWORD_RESET_LINK] To: ${teacher.email} | URL: ${resetUrl}`);
+        await sendPasswordResetEmail({
+          to: teacher.email,
+          name: teacher.name,
+          resetUrl,
+        });
       }
 
       // Always return 200 without revealing if email exists

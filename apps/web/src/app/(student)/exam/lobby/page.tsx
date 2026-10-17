@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { format } from "date-fns";
 import {
@@ -66,13 +66,21 @@ export default function ExamLobbyPage() {
   }, [info, router]);
 
   // Real-time server-synced countdown until startsAt
-  const { secondsRemaining } = useCountdown({
-    endsAt: info?.test.startsAt || null,
+  const { days, hours, minutes, seconds, remainingMs, isFinished } = useCountdown({
+    targetIso: info?.test.startsAt || null,
     serverTime: info?.serverTime,
     onTimeUp: () => {
       refetch();
     },
   });
+
+  const hasRefetchedOnFinished = useRef(false);
+  useEffect(() => {
+    if (isFinished && !hasRefetchedOnFinished.current) {
+      hasRefetchedOnFinished.current = true;
+      refetch();
+    }
+  }, [isFinished, refetch]);
 
   if (isLoading) {
     return (
@@ -105,8 +113,7 @@ export default function ExamLobbyPage() {
 
   const { test, participant, policy, canStart } = info;
 
-  const isStartsAtReached = secondsRemaining !== null && secondsRemaining <= 0;
-  const isStartButtonEnabled = (canStart || isStartsAtReached) && consentChecked && cameraReady;
+  const isStartButtonEnabled = (canStart || isFinished) && consentChecked && cameraReady;
 
   const handleStartExam = async () => {
     setIsStarting(true);
@@ -171,20 +178,26 @@ export default function ExamLobbyPage() {
       </div>
 
       {/* Countdown to Start */}
-      {!isStartsAtReached && secondsRemaining !== null && (
-        <Card className="border-primary/40 bg-primary/5 text-center p-6">
-          <CardTitle className="text-sm uppercase tracking-wider text-primary font-semibold">
-            Test Starts In
-          </CardTitle>
-          <div className="text-4xl font-mono font-bold text-foreground mt-2">
-            {Math.floor(secondsRemaining / 3600) > 0 && `${Math.floor(secondsRemaining / 3600)}h `}
-            {Math.floor((secondsRemaining % 3600) / 60)}m {secondsRemaining % 60}s
-          </div>
-          <CardDescription className="mt-2 text-xs">
-            Complete the webcam check and consent below so you are ready to begin as soon as the test opens.
-          </CardDescription>
-        </Card>
-      )}
+      <Card className="border-primary/40 bg-primary/5 text-center p-6">
+        <CardTitle className="text-sm uppercase tracking-wider text-primary font-semibold">
+          {isFinished ? "Test Has Started" : "Test Starts In"}
+        </CardTitle>
+        <div className="text-4xl font-mono font-bold text-foreground mt-2 tabular-nums">
+          {remainingMs === null ? (
+            "--h --m --s"
+          ) : (
+            <>
+              {days > 0 && `${days}d `}
+              {hours}h {String(minutes).padStart(2, "0")}m {String(seconds).padStart(2, "0")}s
+            </>
+          )}
+        </div>
+        <CardDescription className="mt-2 text-xs">
+          {isFinished
+            ? "Complete the webcam check and consent below so you are ready to begin."
+            : "Complete the webcam check and consent below so you are ready to begin as soon as the test opens."}
+        </CardDescription>
+      </Card>
 
       {/* Main Grid: Proctoring Rules & Camera Verification */}
       <div className="grid gap-6 md:grid-cols-2">

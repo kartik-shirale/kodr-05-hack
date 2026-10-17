@@ -25,4 +25,10 @@ export const config = {
     visionTimeoutMs: Number(process.env.PROCTOR_VISION_TIMEOUT_MS ?? 20000),
     redisUrl: process.env.REDIS_URL,
   },
+  emailjs: {
+    serviceId: process.env.EMAILJS_SERVICE_ID,
+    templateId: process.env.EMAILJS_TEMPLATE_ID,
+    publicKey: process.env.EMAILJS_PUBLIC_KEY,
+    privateKey: process.env.EMAILJS_PRIVATE_KEY,
+  }
 };
