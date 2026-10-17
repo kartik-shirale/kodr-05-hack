@@ -1,6 +1,6 @@
 # Routes: Backend API + Frontend Pages
 
-Matches `schema.prisma` (Teacher, Participant, RefreshToken, Test, QuestionSet, Question, ExamSession, Answer, Event).
+Matches `src/prisma/contract.prisma` (the Prisma 8 contract) (Teacher, Participant, RefreshToken, Test, QuestionSet, Question, ExamSession, Answer, Event).
 
 ## Conventions
 
