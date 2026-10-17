@@ -1,0 +1,21 @@
+{
+  "name": "kodrkoder-5-hack",
+  "version": "0.1.0",
+  "private": true,
+  "packageManager": "npm@11.19.0",
+  "workspaces": [
+    "apps/*"
+  ],
+  "scripts": {
+    "dev": "turbo run dev",
+    "build": "turbo run build",
+    "lint": "turbo run lint",
+    "typecheck": "turbo run typecheck",
+    "dev:web": "npm run dev --workspace web",
+    "dev:api": "npm run dev --workspace api",
+    "dev:flask": "npm run dev --workspace flask-api"
+  },
+  "devDependencies": {
+    "turbo": "^2.5.0"
+  }
+}
