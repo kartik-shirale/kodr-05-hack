@@ -2,6 +2,8 @@ import React from "react";
 import type { Metadata } from "next";
 import { cookies } from "next/headers";
 
+export const instant = false;
+
 import { Navbar } from "@/components/landing/navbar";
 import { Hero } from "@/components/landing/hero";
 import { ProblemStrip } from "@/components/landing/problem-strip";
