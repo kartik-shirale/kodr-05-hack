@@ -9,6 +9,7 @@ import { healthRouter } from './routes/health.js';
 import { proctorRouter } from './routes/proctor.js';
 import { sessionReviewRouter } from './routes/sessions.js';
 import { testsRouter } from './routes/tests.js';
+import { startBackgroundJobs } from './jobs/index.js';
 
 const app = express();
 const port = config.port;
@@ -62,4 +63,5 @@ app.use(errorHandler);
 
 app.listen(port, () => {
   console.log(`API server listening on http://localhost:${port}`);
+  startBackgroundJobs();
 });
