@@ -8,11 +8,6 @@ export const config = {
   refreshTokenTtlMs: 7 * 24 * 60 * 60 * 1000, // 7 days
   frontendUrl: process.env.FRONTEND_URL ?? 'http://localhost:3000',
   isProd: process.env.NODE_ENV === 'production',
-  emailjs: {
-    serviceId: process.env.EMAILJS_SERVICE_ID,
-    templateId: process.env.EMAILJS_TEMPLATE_ID,
-    publicKey: process.env.EMAILJS_PUBLIC_KEY,
-    privateKey: process.env.EMAILJS_PRIVATE_KEY,
   proctor: {
     // Which vision backend to use: 'auto' picks OpenRouter whenever an
     // OpenRouter API key is present, otherwise the Vercel AI Gateway (JEV).
@@ -30,4 +25,10 @@ export const config = {
     visionTimeoutMs: Number(process.env.PROCTOR_VISION_TIMEOUT_MS ?? 20000),
     redisUrl: process.env.REDIS_URL,
   },
+  emailjs: {
+    serviceId: process.env.EMAILJS_SERVICE_ID,
+    templateId: process.env.EMAILJS_TEMPLATE_ID,
+    publicKey: process.env.EMAILJS_PUBLIC_KEY,
+    privateKey: process.env.EMAILJS_PRIVATE_KEY,
+  }
 };
