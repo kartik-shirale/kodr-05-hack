@@ -4,7 +4,10 @@ import express from 'express';
 import { config } from './config/env.js';
 import { errorHandler } from './middleware/error-handler.js';
 import { authRouter } from './routes/auth.js';
+import { examRouter } from './routes/exam.js';
 import { healthRouter } from './routes/health.js';
+import { proctorRouter } from './routes/proctor.js';
+import { sessionReviewRouter } from './routes/sessions.js';
 import { testsRouter } from './routes/tests.js';
 
 const app = express();
@@ -41,6 +44,18 @@ app.use('/auth', authRouter);
 // Specs: Base path /api/v1, Tests routes mounted at /api/v1/tests and aliased to /tests
 app.use('/api/v1/tests', testsRouter);
 app.use('/tests', testsRouter);
+
+// 4. Student: Proctoring ingest routes
+app.use('/api/v1/proctor', proctorRouter);
+app.use('/proctor', proctorRouter);
+
+// 5. Student: Exam flow routes
+app.use('/api/v1/exam', examRouter);
+app.use('/exam', examRouter);
+
+// 6. Teacher: Session detail + event review routes
+app.use('/api/v1', sessionReviewRouter);
+app.use('/', sessionReviewRouter);
 
 // Centralized error handling
 app.use(errorHandler);

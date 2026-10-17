@@ -1,9 +1,10 @@
 "use client";
 
 import React, { useEffect, useRef, useState } from "react";
-import { Camera, CheckCircle2, RefreshCw, Video, VideoOff } from "lucide-react";
+import { CheckCircle2, RefreshCw, VideoOff } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Alert, AlertDescription } from "@/components/ui/alert";
+import { acquireNativeCamera } from "@/features/exam/lib/camera";
 
 interface CameraCheckProps {
   onStatusChange?: (isReady: boolean) => void;
@@ -12,36 +13,49 @@ interface CameraCheckProps {
 export function CameraCheck({ onStatusChange }: CameraCheckProps) {
   const videoRef = useRef<HTMLVideoElement | null>(null);
   const [stream, setStream] = useState<MediaStream | null>(null);
+  const [deviceLabel, setDeviceLabel] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
+  const streamRef = useRef<MediaStream | null>(null);
+
+  const stopStream = () => {
+    if (streamRef.current) {
+      streamRef.current.getTracks().forEach((track) => track.stop());
+      streamRef.current = null;
+    }
+  };
 
   const startCamera = async () => {
     setIsLoading(true);
     setError(null);
 
     try {
-      if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
-        throw new Error("Camera API is not supported in this browser. Please use Chrome, Edge, or Firefox.");
+      const probe = await acquireNativeCamera();
+
+      if (!probe.isNative) {
+        probe.stream.getTracks().forEach((track) => track.stop());
+        setStream(null);
+        setDeviceLabel(null);
+        setError(probe.reason ?? "Virtual camera detected. A physical webcam is required.");
+        onStatusChange?.(false);
+        return;
       }
 
-      const mediaStream = await navigator.mediaDevices.getUserMedia({
-        video: {
-          width: { ideal: 640 },
-          height: { ideal: 480 },
-          facingMode: "user",
-        },
-        audio: false,
-      });
-
-      setStream(mediaStream);
+      stopStream();
+      streamRef.current = probe.stream;
+      setStream(probe.stream);
+      setDeviceLabel(probe.label || null);
       if (videoRef.current) {
-        videoRef.current.srcObject = mediaStream;
+        videoRef.current.srcObject = probe.stream;
       }
       onStatusChange?.(true);
-    } catch (err: any) {
-      const msg = err.name === "NotAllowedError"
+    } catch (err) {
+      const isDenied = err instanceof DOMException && err.name === "NotAllowedError";
+      const msg = isDenied
         ? "Camera permission denied. Please allow camera access in your browser settings to proceed."
-        : err.message || "Failed to initialize webcam.";
+        : err instanceof Error
+          ? err.message
+          : "Failed to initialize webcam.";
       setError(msg);
       onStatusChange?.(false);
     } finally {
@@ -53,9 +67,7 @@ export function CameraCheck({ onStatusChange }: CameraCheckProps) {
     startCamera();
 
     return () => {
-      if (stream) {
-        stream.getTracks().forEach((track) => track.stop());
-      }
+      stopStream();
     };
   }, []);
 
@@ -80,7 +92,7 @@ export function CameraCheck({ onStatusChange }: CameraCheckProps) {
         {stream && (
           <div className="absolute top-2.5 left-2.5 bg-black/60 backdrop-blur px-2.5 py-1 rounded-md text-[11px] font-medium text-emerald-400 flex items-center gap-1.5 border border-emerald-500/20">
             <span className="size-2 rounded-full bg-emerald-500 animate-pulse" />
-            <span>Camera Active (Local Only)</span>
+            <span className="max-w-56 truncate">{deviceLabel ? `Camera Active — ${deviceLabel}` : "Camera Active"}</span>
           </div>
         )}
       </div>
@@ -97,7 +109,7 @@ export function CameraCheck({ onStatusChange }: CameraCheckProps) {
       ) : stream ? (
         <p className="text-xs text-emerald-600 flex items-center justify-center gap-1 font-medium text-center">
           <CheckCircle2 className="size-3.5" />
-          <span>Camera verified. Nothing is uploaded until an active violation event is triggered.</span>
+          <span>Physical webcam verified. Frames are analysed during the exam; only high-risk evidence is stored.</span>
         </p>
       ) : null}
     </div>

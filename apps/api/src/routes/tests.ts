@@ -6,6 +6,8 @@ import { validate } from '../middleware/validate.js';
 import { db, epochMsFromInstant, instantFromDate } from '../prisma/db.js';
 import { AppError, formatSuccessResponse } from '../utils/errors.js';
 import { participantsRouter } from './participants.js';
+import { testRulesRouter } from './rules.js';
+import { testSessionsRouter } from './sessions.js';
 
 export const testsRouter = Router();
 
@@ -14,6 +16,10 @@ testsRouter.use(authenticate, requireRole('TEACHER'));
 
 // Mount participant routes: /tests/:testId/participants...
 testsRouter.use('/:testId/participants', participantsRouter);
+
+// Mount session listing + rule management: /tests/:testId/sessions, /tests/:testId/rules
+testsRouter.use('/:testId/sessions', testSessionsRouter);
+testsRouter.use('/:testId/rules', testRulesRouter);
 
 // ─── Validation Schemas ──────────────────────────────────────────────
 const questionSchema = z

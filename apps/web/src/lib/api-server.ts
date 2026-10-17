@@ -8,7 +8,7 @@ export async function createServerApiClient() {
   const cookieHeader = cookieStore.toString();
 
   const baseURL =
-    (process.env.INTERNAL_API_URL || process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001") +
+    (process.env.INTERNAL_API_URL || process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000") +
     "/api/v1";
 
   const client = axios.create({

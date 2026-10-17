@@ -21,6 +21,9 @@ __pycache__/
 # testing
 coverage/
 
+# proctoring evidence snapshots
+uploads/
+
 # env files (can opt-in for committing if needed)
 .env*
 
