@@ -6,8 +6,8 @@ import { validate } from '../middleware/validate.js';
 import { db, epochMsFromInstant, instantFromDate } from '../prisma/db.js';
 import { AppError, formatSuccessResponse } from '../utils/errors.js';
 import { participantsRouter } from './participants.js';
-import { rulesRouter } from './rules.js';
-import { handleListTestSessions, listSessionsQuerySchema } from './sessions.js';
+import { testRulesRouter } from './rules.js';
+import { testSessionsRouter } from './sessions.js';
 
 export const testsRouter = Router();
 
@@ -17,8 +17,9 @@ testsRouter.use(authenticate, requireRole('TEACHER'));
 // Mount participant routes: /tests/:testId/participants...
 testsRouter.use('/:testId/participants', participantsRouter);
 
-// Mount tuning & warning policy routes: /tests/:testId/rules...
-testsRouter.use('/:testId/rules', rulesRouter);
+// Mount session listing + rule management: /tests/:testId/sessions, /tests/:testId/rules
+testsRouter.use('/:testId/sessions', testSessionsRouter);
+testsRouter.use('/:testId/rules', testRulesRouter);
 
 // ─── Validation Schemas ──────────────────────────────────────────────
 const questionSchema = z
@@ -422,11 +423,4 @@ testsRouter.post(
       next(err);
     }
   }
-);
-
-// ─── 7. GET /tests/:testId/sessions (List Sessions for Test) ─────────
-testsRouter.get(
-  '/:testId/sessions',
-  validate({ params: testIdParamSchema, query: listSessionsQuerySchema }),
-  handleListTestSessions
 );
