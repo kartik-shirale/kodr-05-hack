@@ -5,6 +5,7 @@ import { config } from './config/env.js';
 import { errorHandler } from './middleware/error-handler.js';
 import { authRouter } from './routes/auth.js';
 import { healthRouter } from './routes/health.js';
+import { testsRouter } from './routes/tests.js';
 
 const app = express();
 const port = config.port;
@@ -35,6 +36,11 @@ app.use('/api/v1/health', healthRouter);
 // Specs: Base path /api/v1, Auth routes mounted at /api/v1/auth and aliased to /auth
 app.use('/api/v1/auth', authRouter);
 app.use('/auth', authRouter);
+
+// 3. Teacher: Tests routes
+// Specs: Base path /api/v1, Tests routes mounted at /api/v1/tests and aliased to /tests
+app.use('/api/v1/tests', testsRouter);
+app.use('/tests', testsRouter);
 
 // Centralized error handling
 app.use(errorHandler);
