@@ -6,6 +6,7 @@ import { validate } from '../middleware/validate.js';
 import { db, epochMsFromInstant, instantFromDate } from '../prisma/db.js';
 import { AppError, formatSuccessResponse } from '../utils/errors.js';
 import { participantsRouter } from './participants.js';
+import { handleListTestSessions, listSessionsQuerySchema } from './sessions.js';
 
 export const testsRouter = Router();
 
@@ -417,4 +418,11 @@ testsRouter.post(
       next(err);
     }
   }
+);
+
+// ─── 7. GET /tests/:testId/sessions (List Sessions for Test) ─────────
+testsRouter.get(
+  '/:testId/sessions',
+  validate({ params: testIdParamSchema, query: listSessionsQuerySchema }),
+  handleListTestSessions
 );
