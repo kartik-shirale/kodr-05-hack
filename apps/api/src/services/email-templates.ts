@@ -14,25 +14,25 @@ export function renderCredentialsEmailHtml(payload: CredentialsEmailPayload): st
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Your Exam Credentials</title>
 </head>
-<body style="margin: 0; padding: 0; background-color: #f1f5f9; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; color: #1e293b; line-height: 1.6;">
+<body style="margin: 0; padding: 0; background-color: #f4f4f5; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; color: #09090b; line-height: 1.6;">
 
-  <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" style="background-color: #f1f5f9; padding: 40px 16px;">
+  <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" style="background-color: #f4f4f5; padding: 40px 16px;">
     <tr>
       <td align="center">
         <!-- Main Container Card -->
-        <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" style="max-width: 600px; background-color: #ffffff; border-radius: 16px; overflow: hidden; box-shadow: 0 10px 25px -5px rgba(15, 23, 42, 0.08), 0 8px 10px -6px rgba(15, 23, 42, 0.04); border: 1px solid #e2e8f0;">
+        <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" style="max-width: 580px; background-color: #ffffff; border-radius: 12px; overflow: hidden; box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05), 0 1px 2px rgba(0, 0, 0, 0.04); border: 1px solid #e4e4e7;">
 
           <!-- Header Banner -->
           <tr>
-            <td style="background: linear-gradient(135deg, #0f172a 0%, #1e1b4b 100%); padding: 36px 32px; text-align: left;">
+            <td style="background-color: #18181b; padding: 32px 32px; text-align: left; border-bottom: 1px solid #27272a;">
               <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0">
                 <tr>
                   <td>
                     <!-- Pill Tag -->
-                    <span style="display: inline-block; background-color: rgba(56, 189, 248, 0.15); border: 1px solid rgba(56, 189, 248, 0.3); color: #38bdf8; font-size: 11px; font-weight: 700; letter-spacing: 1.5px; text-transform: uppercase; padding: 5px 12px; border-radius: 20px; margin-bottom: 14px;">
+                    <span style="display: inline-block; background-color: rgba(255, 255, 255, 0.1); border: 1px solid rgba(255, 255, 255, 0.18); color: #f4f4f5; font-size: 11px; font-weight: 600; letter-spacing: 1.2px; text-transform: uppercase; padding: 4px 10px; border-radius: 9999px; margin-bottom: 12px;">
                       Proctored Assessment
                     </span>
-                    <h1 style="margin: 8px 0 0 0; color: #ffffff; font-size: 24px; font-weight: 700; letter-spacing: -0.5px;">
+                    <h1 style="margin: 4px 0 0 0; color: #ffffff; font-size: 22px; font-weight: 700; letter-spacing: -0.5px;">
                       Your Exam Credentials
                     </h1>
                   </td>
@@ -44,29 +44,29 @@ export function renderCredentialsEmailHtml(payload: CredentialsEmailPayload): st
           <!-- Main Content Area -->
           <tr>
             <td style="padding: 32px 32px 24px 32px;">
-              <p style="margin: 0 0 16px 0; font-size: 16px; color: #334155;">
+              <p style="margin: 0 0 12px 0; font-size: 15px; color: #09090b;">
                 Hello <strong>${escapeHtml(payload.studentName)}</strong>,
               </p>
-              <p style="margin: 0 0 24px 0; font-size: 15px; color: #64748b; line-height: 1.6;">
+              <p style="margin: 0 0 24px 0; font-size: 14px; color: #71717a; line-height: 1.6;">
                 You have been registered for the assessment <strong>"${escapeHtml(payload.testTitle)}"</strong>. Please keep these credentials confidential and follow the instructions below to join your session.
               </p>
 
               <!-- Exam Details Card -->
-              <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" style="background-color: #f8fafc; border: 1px solid #e2e8f0; border-radius: 12px; margin-bottom: 24px;">
+              <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" style="background-color: #fafafa; border: 1px solid #e4e4e7; border-radius: 8px; margin-bottom: 24px;">
                 <tr>
-                  <td style="padding: 20px;">
+                  <td style="padding: 18px 20px;">
                     <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0">
                       <tr>
-                        <td style="padding-bottom: 12px; width: 35%; font-size: 13px; font-weight: 600; color: #64748b; text-transform: uppercase; letter-spacing: 0.5px;">Assessment</td>
-                        <td style="padding-bottom: 12px; font-size: 15px; font-weight: 600; color: #0f172a;">${escapeHtml(payload.testTitle)}</td>
+                        <td style="padding-bottom: 10px; width: 35%; font-size: 12px; font-weight: 600; color: #71717a; text-transform: uppercase; letter-spacing: 0.5px;">Assessment</td>
+                        <td style="padding-bottom: 10px; font-size: 14px; font-weight: 600; color: #09090b;">${escapeHtml(payload.testTitle)}</td>
                       </tr>
                       <tr>
-                        <td style="padding-bottom: 12px; font-size: 13px; font-weight: 600; color: #64748b; text-transform: uppercase; letter-spacing: 0.5px;">Starts At</td>
-                        <td style="padding-bottom: 12px; font-size: 15px; font-weight: 500; color: #0f172a;">${escapeHtml(formattedDate)}</td>
+                        <td style="padding-bottom: 10px; font-size: 12px; font-weight: 600; color: #71717a; text-transform: uppercase; letter-spacing: 0.5px;">Starts At</td>
+                        <td style="padding-bottom: 10px; font-size: 14px; font-weight: 500; color: #09090b;">${escapeHtml(formattedDate)}</td>
                       </tr>
                       <tr>
-                        <td style="font-size: 13px; font-weight: 600; color: #64748b; text-transform: uppercase; letter-spacing: 0.5px;">Duration</td>
-                        <td style="font-size: 15px; font-weight: 500; color: #0f172a;">${payload.durationMinutes} Minutes</td>
+                        <td style="font-size: 12px; font-weight: 600; color: #71717a; text-transform: uppercase; letter-spacing: 0.5px;">Duration</td>
+                        <td style="font-size: 14px; font-weight: 500; color: #09090b;">${payload.durationMinutes} Minutes</td>
                       </tr>
                     </table>
                   </td>
@@ -74,16 +74,16 @@ export function renderCredentialsEmailHtml(payload: CredentialsEmailPayload): st
               </table>
 
               <!-- Student Password Card -->
-              <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" style="background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%); border-radius: 12px; margin-bottom: 28px; text-align: center;">
+              <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" style="background-color: #18181b; border: 1px solid #27272a; border-radius: 8px; margin-bottom: 28px; text-align: center;">
                 <tr>
-                  <td style="padding: 24px;">
-                    <div style="font-size: 11px; font-weight: 700; color: #94a3b8; text-transform: uppercase; letter-spacing: 1.5px; margin-bottom: 10px;">
+                  <td style="padding: 22px 20px;">
+                    <div style="font-size: 11px; font-weight: 600; color: #a1a1aa; text-transform: uppercase; letter-spacing: 1.5px; margin-bottom: 8px;">
                       Your One-Time Student Password
                     </div>
-                    <div style="font-family: 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, Courier, monospace; font-size: 26px; font-weight: 800; color: #38bdf8; letter-spacing: 4px; padding: 10px 0;">
+                    <div style="font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace; font-size: 28px; font-weight: 700; color: #ffffff; letter-spacing: 4px; padding: 6px 0;">
                       ${escapeHtml(payload.password)}
                     </div>
-                    <div style="font-size: 12px; color: #64748b; margin-top: 6px;">
+                    <div style="font-size: 12px; color: #71717a; margin-top: 6px;">
                       Copy this password to log in when entering the lobby
                     </div>
                   </td>
@@ -94,33 +94,36 @@ export function renderCredentialsEmailHtml(payload: CredentialsEmailPayload): st
               <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" style="margin-bottom: 32px; text-align: center;">
                 <tr>
                   <td align="center">
-                    <a href="${payload.joinUrl}" target="_blank" style="display: inline-block; background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%); color: #ffffff; text-decoration: none; font-size: 16px; font-weight: 600; padding: 14px 36px; border-radius: 8px; box-shadow: 0 4px 14px rgba(37, 99, 235, 0.35);">
+                    <a href="${payload.joinUrl}" target="_blank" style="display: inline-block; background-color: #18181b; color: #ffffff; text-decoration: none; font-size: 15px; font-weight: 600; padding: 13px 34px; border-radius: 8px; border: 1px solid #27272a; box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);">
                       Join Exam Lobby &rarr;
                     </a>
                   </td>
                 </tr>
                 <tr>
                   <td align="center" style="padding-top: 12px;">
-                    <span style="font-size: 12px; color: #94a3b8;">
-                      Or copy direct link: <a href="${payload.joinUrl}" style="color: #2563eb; text-decoration: underline; word-break: break-all;">${payload.joinUrl}</a>
+                    <span style="font-size: 12px; color: #71717a;">
+                      Or copy direct link: <a href="${payload.joinUrl}" style="color: #18181b; text-decoration: underline; word-break: break-all;">${payload.joinUrl}</a>
                     </span>
                   </td>
                 </tr>
               </table>
 
               <!-- Important Instructions / Security Callout -->
-              <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" style="background-color: #f8fafc; border-left: 4px solid #3b82f6; border-radius: 4px 8px 8px 4px; padding: 18px 20px; margin-bottom: 16px;">
+              <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" style="background-color: #fafafa; border: 1px solid #e4e4e7; border-radius: 8px; padding: 18px 20px; margin-bottom: 16px;">
                 <tr>
                   <td>
-                    <h4 style="margin: 0 0 10px 0; font-size: 14px; font-weight: 700; color: #0f172a; text-transform: uppercase; letter-spacing: 0.5px;">
+                    <h4 style="margin: 0 0 10px 0; font-size: 13px; font-weight: 700; color: #09090b; text-transform: uppercase; letter-spacing: 0.5px;">
                       Important Assessment Rules
                     </h4>
-                    <ul style="margin: 0; padding-left: 18px; font-size: 13px; color: #475569; line-height: 1.6;">
+                    <ul style="margin: 0 0 12px 0; padding-left: 18px; font-size: 13px; color: #3f3f46; line-height: 1.6;">
                       <li style="margin-bottom: 6px;"><strong>Camera & Microphone:</strong> A working camera is mandatory. Face detection and gaze tracking run continuously.</li>
                       <li style="margin-bottom: 6px;"><strong>Tab & Window Tracking:</strong> Switching browser tabs or windows will be logged as proctoring violations.</li>
                       <li style="margin-bottom: 6px;"><strong>Lobby Arrival:</strong> Arrive 5 minutes prior to the scheduled start time to complete camera consent.</li>
                       <li><strong>Confidentiality:</strong> Do not share your credentials or exam link with anyone.</li>
                     </ul>
+                    <div style="padding: 10px 12px; background-color: #fffbeb; border: 1px solid #fde68a; border-radius: 6px; font-size: 12px; color: #92400e; line-height: 1.5;">
+                      <strong>Warning Policy:</strong> Violations are automatically tracked. A limit of warnings is enforced before immediate termination.
+                    </div>
                   </td>
                 </tr>
               </table>
@@ -130,11 +133,11 @@ export function renderCredentialsEmailHtml(payload: CredentialsEmailPayload): st
 
           <!-- Footer -->
           <tr>
-            <td style="background-color: #f8fafc; border-top: 1px solid #e2e8f0; padding: 24px 32px; text-align: center;">
-              <p style="margin: 0 0 8px 0; font-size: 12px; color: #64748b;">
+            <td style="background-color: #fafafa; border-top: 1px solid #e4e4e7; padding: 22px 32px; text-align: center;">
+              <p style="margin: 0 0 6px 0; font-size: 12px; color: #71717a;">
                 If you have questions or experience technical difficulties, contact your instructor or exam proctor.
               </p>
-              <p style="margin: 0; font-size: 11px; color: #94a3b8;">
+              <p style="margin: 0; font-size: 11px; color: #a1a1aa;">
                 &copy; Kodr Proctoring System &bull; Automated notification. Please do not reply directly to this email.
               </p>
             </td>
@@ -160,16 +163,19 @@ export function renderPasswordResetEmailHtml(payload: { name: string; resetUrl: 
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Reset Your Password</title>
 </head>
-<body style="margin: 0; padding: 0; background-color: #f1f5f9; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; color: #1e293b; line-height: 1.6;">
+<body style="margin: 0; padding: 0; background-color: #f4f4f5; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; color: #09090b; line-height: 1.6;">
 
-  <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" style="background-color: #f1f5f9; padding: 40px 16px;">
+  <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" style="background-color: #f4f4f5; padding: 40px 16px;">
     <tr>
       <td align="center">
-        <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" style="max-width: 600px; background-color: #ffffff; border-radius: 16px; overflow: hidden; box-shadow: 0 10px 25px -5px rgba(15, 23, 42, 0.08); border: 1px solid #e2e8f0;">
+        <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" style="max-width: 580px; background-color: #ffffff; border-radius: 12px; overflow: hidden; box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05), 0 1px 2px rgba(0, 0, 0, 0.04); border: 1px solid #e4e4e7;">
 
           <tr>
-            <td style="background: linear-gradient(135deg, #0f172a 0%, #1e1b4b 100%); padding: 36px 32px; text-align: left;">
-              <h1 style="margin: 0; color: #ffffff; font-size: 24px; font-weight: 700;">
+            <td style="background-color: #18181b; padding: 32px 32px; text-align: left; border-bottom: 1px solid #27272a;">
+              <span style="display: inline-block; background-color: rgba(255, 255, 255, 0.1); border: 1px solid rgba(255, 255, 255, 0.18); color: #f4f4f5; font-size: 11px; font-weight: 600; letter-spacing: 1.2px; text-transform: uppercase; padding: 4px 10px; border-radius: 9999px; margin-bottom: 12px;">
+                Account Security
+              </span>
+              <h1 style="margin: 4px 0 0 0; color: #ffffff; font-size: 22px; font-weight: 700; letter-spacing: -0.5px;">
                 Password Reset Request
               </h1>
             </td>
@@ -177,39 +183,39 @@ export function renderPasswordResetEmailHtml(payload: { name: string; resetUrl: 
 
           <tr>
             <td style="padding: 32px 32px 24px 32px;">
-              <p style="margin: 0 0 16px 0; font-size: 16px; color: #334155;">
+              <p style="margin: 0 0 12px 0; font-size: 15px; color: #09090b;">
                 Hello <strong>${escapeHtml(payload.name)}</strong>,
               </p>
-              <p style="margin: 0 0 24px 0; font-size: 15px; color: #64748b; line-height: 1.6;">
-                We received a request to reset your password for your Teacher account. Click the button below to choose a new password. This link is valid for 1 hour.
+              <p style="margin: 0 0 24px 0; font-size: 14px; color: #71717a; line-height: 1.6;">
+                We received a request to reset the password for your Teacher account. Click the button below to choose a new password. This link is valid for 1 hour.
               </p>
 
               <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" style="margin: 28px 0; text-align: center;">
                 <tr>
                   <td align="center">
-                    <a href="${payload.resetUrl}" target="_blank" style="display: inline-block; background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%); color: #ffffff; text-decoration: none; font-size: 16px; font-weight: 600; padding: 14px 36px; border-radius: 8px;">
+                    <a href="${payload.resetUrl}" target="_blank" style="display: inline-block; background-color: #18181b; color: #ffffff; text-decoration: none; font-size: 15px; font-weight: 600; padding: 13px 34px; border-radius: 8px; border: 1px solid #27272a; box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);">
                       Reset Password &rarr;
                     </a>
                   </td>
                 </tr>
                 <tr>
                   <td align="center" style="padding-top: 12px;">
-                    <span style="font-size: 12px; color: #94a3b8;">
-                      Or copy direct link: <a href="${payload.resetUrl}" style="color: #2563eb; text-decoration: underline; word-break: break-all;">${payload.resetUrl}</a>
+                    <span style="font-size: 12px; color: #71717a;">
+                      Or copy direct link: <a href="${payload.resetUrl}" style="color: #18181b; text-decoration: underline; word-break: break-all;">${payload.resetUrl}</a>
                     </span>
                   </td>
                 </tr>
               </table>
 
-              <p style="margin: 0; font-size: 13px; color: #94a3b8;">
+              <p style="margin: 0; font-size: 13px; color: #a1a1aa; line-height: 1.5;">
                 If you did not request a password reset, you can safely ignore this email. Your password will remain unchanged.
               </p>
             </td>
           </tr>
 
           <tr>
-            <td style="background-color: #f8fafc; border-top: 1px solid #e2e8f0; padding: 20px 32px; text-align: center;">
-              <p style="margin: 0; font-size: 11px; color: #94a3b8;">
+            <td style="background-color: #fafafa; border-top: 1px solid #e4e4e7; padding: 20px 32px; text-align: center;">
+              <p style="margin: 0; font-size: 11px; color: #a1a1aa;">
                 &copy; Kodr Proctoring System &bull; Automated notification.
               </p>
             </td>
