@@ -4,10 +4,10 @@ import express from 'express';
 import { config } from './config/env.js';
 import { errorHandler } from './middleware/error-handler.js';
 import { authRouter } from './routes/auth.js';
-import { eventsRouter } from './routes/events.js';
 import { examRouter } from './routes/exam.js';
 import { healthRouter } from './routes/health.js';
-import { sessionsRouter } from './routes/sessions.js';
+import { proctorRouter } from './routes/proctor.js';
+import { sessionReviewRouter } from './routes/sessions.js';
 import { testsRouter } from './routes/tests.js';
 import { startBackgroundJobs } from './jobs/index.js';
 
@@ -46,20 +46,17 @@ app.use('/auth', authRouter);
 app.use('/api/v1/tests', testsRouter);
 app.use('/tests', testsRouter);
 
-// 4. Teacher: Sessions routes
-// Specs: Base path /api/v1, Sessions routes mounted at /api/v1/sessions and aliased to /sessions
-app.use('/api/v1/sessions', sessionsRouter);
-app.use('/sessions', sessionsRouter);
+// 4. Student: Proctoring ingest routes
+app.use('/api/v1/proctor', proctorRouter);
+app.use('/proctor', proctorRouter);
 
-// 5. Teacher: Events routes
-// Specs: Base path /api/v1, Events routes mounted at /api/v1/events and aliased to /events
-app.use('/api/v1/events', eventsRouter);
-app.use('/events', eventsRouter);
-
-// 6. Student: Exam routes
-// Specs: Base path /api/v1, Exam routes mounted at /api/v1/exam and aliased to /exam
+// 5. Student: Exam flow routes
 app.use('/api/v1/exam', examRouter);
 app.use('/exam', examRouter);
+
+// 6. Teacher: Session detail + event review routes
+app.use('/api/v1', sessionReviewRouter);
+app.use('/', sessionReviewRouter);
 
 // Centralized error handling
 app.use(errorHandler);

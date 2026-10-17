@@ -1,4 +1,4 @@
-import { apiGet, apiPatch } from "@/lib/api-client";
+import { API_ORIGIN, apiGet, apiPatch } from "@/lib/api-client";
 import type {
   ReviewActionInput,
   SessionDetailData,
@@ -23,6 +23,5 @@ export async function reviewEventApi(eventId: string, data: ReviewActionInput) {
 }
 
 export function getEventSnapshotUrl(eventId: string): string {
-  const baseURL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001";
-  return `${baseURL}/api/v1/events/${eventId}/snapshot`;
+  return `${API_ORIGIN}/api/v1/events/${eventId}/snapshot`;
 }

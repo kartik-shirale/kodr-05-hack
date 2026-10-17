@@ -44,6 +44,8 @@ import type {
 import { useCountdown } from "@/features/exam/hooks/use-countdown";
 import { useTabVisibility } from "@/features/exam/hooks/use-tab-visibility";
 import { useProctoring } from "@/features/exam/hooks/use-proctoring";
+import { useFrameCapture } from "@/features/exam/hooks/use-frame-capture";
+import { acquireNativeCamera, isExtendedDisplay } from "@/features/exam/lib/camera";
 import { ExamTimer } from "@/features/exam/components/timer";
 import { QuestionView } from "@/features/exam/components/question-view";
 import { WarningDialog } from "@/features/exam/components/warning-dialog";
@@ -101,6 +103,96 @@ export default function ExamRoomPage() {
   // Offline detection
   const [isOffline, setIsOffline] = useState(false);
 
+  // Camera state
+  const [cameraOff, setCameraOff] = useState(false);
+  const [cameraWarning, setCameraWarning] = useState<string | null>(null);
+
+  // 6. Client-event dispatcher (snapshot-optional)
+  const dispatchEvent = useCallback(
+    async (
+      type: string,
+      durationMs?: number,
+      snapshotBlob?: Blob,
+      meta?: Record<string, unknown>
+    ) => {
+      const formData = new FormData();
+      formData.append("type", type);
+      formData.append("occurredAt", new Date().toISOString());
+      if (durationMs) formData.append("durationMs", String(durationMs));
+      if (meta) formData.append("meta", JSON.stringify(meta));
+      if (snapshotBlob) formData.append("snapshot", snapshotBlob, "evidence.jpg");
+
+      try {
+        const response = await uploadExamEventApi(formData);
+        const warning = response.data?.warning;
+
+        if (warning) {
+          if (warning.terminated) {
+            toast.error("Maximum warnings reached. Your exam has been terminated.");
+            router.push("/exam/done");
+          } else if (warning.counted) {
+            setActiveWarning(warning);
+          }
+        }
+      } catch {
+        // Keep going; the queue/retry flow handles transient failures.
+      }
+    },
+    [router]
+  );
+
+  // 7. Passive frame upload: a raw camera frame for server-side JEV analysis.
+  const uploadFrame = useCallback(async (blob: Blob) => {
+    const formData = new FormData();
+    formData.append("occurredAt", new Date().toISOString());
+    formData.append("snapshot", blob, "frame.jpg");
+    try {
+      await uploadExamEventApi(formData);
+    } catch {
+      // Ignore transient capture/upload errors.
+    }
+  }, []);
+
+  // 8. Native camera lifecycle (guards against virtual cameras)
+  const streamRef = useRef<MediaStream | null>(null);
+
+  const stopCamera = useCallback(() => {
+    if (streamRef.current) {
+      streamRef.current.getTracks().forEach((track) => track.stop());
+      streamRef.current = null;
+    }
+  }, []);
+
+  const reportCameraOff = useCallback(() => {
+    setCameraOff(true);
+    void dispatchEvent("NO_FACE", 0, undefined, { reason: "camera_off" });
+  }, [dispatchEvent]);
+
+  const startCamera = useCallback(async () => {
+    try {
+      const probe = await acquireNativeCamera();
+      stopCamera();
+      streamRef.current = probe.stream;
+      setMediaStream(probe.stream);
+      if (videoRef.current) {
+        videoRef.current.srcObject = probe.stream;
+      }
+      setCameraOff(false);
+      setCameraWarning(probe.isNative ? null : probe.reason);
+
+      const track = probe.stream.getVideoTracks()[0];
+      if (track) {
+        track.addEventListener("ended", reportCameraOff);
+        track.addEventListener("mute", reportCameraOff);
+      }
+    } catch (err) {
+      reportCameraOff();
+      setCameraWarning(
+        err instanceof Error ? err.message : "Webcam is unavailable. Reconnect your camera to continue."
+      );
+    }
+  }, [stopCamera, reportCameraOff]);
+
   // 1. Initialize Exam on mount
   const initExam = async () => {
     setIsLoading(true);
@@ -136,31 +228,41 @@ export default function ExamRoomPage() {
 
   // 2. Initialize local webcam for proctoring
   useEffect(() => {
-    let activeStream: MediaStream | null = null;
-    const setupCamera = async () => {
-      try {
-        const stream = await navigator.mediaDevices.getUserMedia({
-          video: { width: 320, height: 240, facingMode: "user" },
-          audio: false,
-        });
-        activeStream = stream;
-        setMediaStream(stream);
-        if (videoRef.current) {
-          videoRef.current.srcObject = stream;
-        }
-      } catch {
-        // Handled silently; events will upload without snapshot
+    startCamera();
+    return () => stopCamera();
+  }, [startCamera, stopCamera]);
+
+  // 2a. Bind the stream to the (lazily mounted) preview element.
+  useEffect(() => {
+    if (videoRef.current && mediaStream) {
+      videoRef.current.srcObject = mediaStream;
+    }
+  }, [mediaStream, examData]);
+
+  // 2b. Keep trying to restore a lost camera feed.
+  useEffect(() => {
+    if (!cameraOff || !examData) return;
+    const retry = setInterval(() => {
+      startCamera();
+    }, 4000);
+    return () => clearInterval(retry);
+  }, [cameraOff, examData, startCamera]);
+
+  // 2c. Dual-monitor / extended-display detection.
+  useEffect(() => {
+    if (!examData) return;
+    const check = () => {
+      if (isExtendedDisplay()) {
+        dispatchEvent("TAB_SWITCH", 0, undefined, { reason: "dual_monitor" });
       }
     };
-
-    setupCamera();
-
+    const initial = setTimeout(check, 0);
+    window.addEventListener("focus", check);
     return () => {
-      if (activeStream) {
-        activeStream.getTracks().forEach((track) => track.stop());
-      }
+      clearTimeout(initial);
+      window.removeEventListener("focus", check);
     };
-  }, []);
+  }, [examData, dispatchEvent]);
 
   // 3. Online/offline listener
   useEffect(() => {
@@ -204,52 +306,25 @@ export default function ExamRoomPage() {
     },
   });
 
-  // 6. Event Dispatcher
-  const handleProctoringEvent = useCallback(
-    async (
-      type: string,
-      durationMs?: number,
-      snapshotBlob?: Blob,
-      meta?: Record<string, unknown>
-    ) => {
-      const formData = new FormData();
-      formData.append("type", type);
-      formData.append("occurredAt", new Date().toISOString());
-      if (durationMs) formData.append("durationMs", String(durationMs));
-      if (meta) formData.append("meta", JSON.stringify(meta));
-      if (snapshotBlob) formData.append("snapshot", snapshotBlob, "evidence.jpg");
-
-      try {
-        const response = await uploadExamEventApi(formData);
-        const warning = response.data?.warning;
-
-        if (warning) {
-          if (warning.terminated) {
-            toast.error("Maximum warnings reached. Your exam has been terminated.");
-            router.push("/exam/done");
-          } else if (warning.counted) {
-            setActiveWarning(warning);
-          }
-        }
-      } catch {
-        // Enqueued or retried
-      }
-    },
-    [router]
-  );
-
   // Tab visibility detection
   useTabVisibility({
     enabled: Boolean(examData),
     onTabLeave: () => {
-      handleProctoringEvent("TAB_SWITCH", 1500, undefined, { reason: "window_blur" });
+      dispatchEvent("TAB_SWITCH", 1500, undefined, { reason: "window_blur" });
     },
   });
 
   // Simulator hook
   const { simulateEvent, isSimulating } = useProctoring({
-    onEvent: handleProctoringEvent,
+    onEvent: dispatchEvent,
     enabled: Boolean(examData),
+  });
+
+  // Random passive frame capture (every 1-5s) sent to the backend for JEV analysis.
+  useFrameCapture({
+    enabled: Boolean(examData) && !isSubmitting && !cameraOff,
+    videoRef,
+    onFrame: uploadFrame,
   });
 
   // 7. Answer Selection & Autosave
@@ -308,6 +383,22 @@ export default function ExamRoomPage() {
         <div className="bg-destructive text-destructive-foreground px-4 py-2 text-center text-xs font-semibold flex items-center justify-center gap-2">
           <WifiOff className="size-4 animate-pulse" />
           <span>You are currently offline. Answers are stored locally and will be synced upon reconnecting.</span>
+        </div>
+      )}
+
+      {/* Camera Alert Banner */}
+      {cameraOff && (
+        <div className="bg-destructive text-destructive-foreground px-4 py-2 text-center text-xs font-semibold flex items-center justify-center gap-2">
+          <Camera className="size-4 animate-pulse" />
+          <span>Camera feed lost. Reconnect your webcam immediately — this violation is being recorded.</span>
+        </div>
+      )}
+
+      {/* Virtual camera warning */}
+      {cameraWarning && !cameraOff && (
+        <div className="bg-amber-500 text-amber-950 px-4 py-2 text-center text-xs font-semibold flex items-center justify-center gap-2">
+          <AlertTriangle className="size-4" />
+          <span>{cameraWarning}</span>
         </div>
       )}
 
